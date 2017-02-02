@@ -32,10 +32,9 @@ void sigHand() {
 int main(int argc, char **argv)
 {
 	printf("\nProcess ID: %d\n", getpid());
-
 	signal(SIGINT, sigHand);
-   struct timespec req, rem;
-	for(int i =0; i <= 5; i++){
+   	struct timespec req, rem;
+	while(1) {
 		req.tv_sec = 1;
 		req.tv_nsec = 0;
 		rem.tv_sec = 0;
@@ -49,16 +48,3 @@ int main(int argc, char **argv)
 	
   return 0;
 }
-
-
-	
-	// 	if(signal(SIGINT, SIG_IGN) == 0){
-	// 		ssize_t bytes; 
-	// 		const int STDOUT = 1; 
-	// 		bytes = write(STDOUT, "Nice try.\n", 10); 
-	// 		if(bytes != 10) 
- //   				exit(-999);
-	// }
-
-
-
