@@ -3,7 +3,7 @@
 ################
 TEAM INFO
 ################
-Name1: Mohammad Asif
+#Name1: Mohammad Asif
 
 EID1: mha685
 
@@ -14,7 +14,7 @@ Email: its.mohammad96@gmail.com
 Unique Number: 52105
 
 
-Name2: Yvonne Huang
+#Name2: Yvonne Huang
 
 EID2: yeh92
 
