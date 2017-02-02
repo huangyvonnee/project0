@@ -10,7 +10,11 @@
 
 
 void sigHand() {
-	printf("%s\n", "Nice try");
+	ssize_t bytes; 
+	const int STDOUT = 1; 
+	bytes = write(STDOUT, "Nice try.\n", 10); 
+	if(bytes != 10) 
+   	exit(-999);
 }
 
 
