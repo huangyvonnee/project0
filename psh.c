@@ -1,7 +1,8 @@
 /* 
  * psh - A prototype tiny shell program with job control
  * 
- * <Put your name and login ID here>
+ * <Mohammad Asif: masif96>
+ * <Yvonne Huang: yvonnee>
  */
 #include <stdio.h>
 #include <stdlib.h>
