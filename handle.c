@@ -8,6 +8,14 @@
 #include "util.h"
 
 
+
+void sigHand() {
+	printf("%s\n", "Nice try");
+}
+
+
+
+
 /*
  * First, print out the process ID of this process.
  *
@@ -20,26 +28,33 @@
 int main(int argc, char **argv)
 {
 	printf("\nProcess ID: %d\n", getpid());
-	
-	
-	
-   	struct timespec sec;
-   	sec.tv_sec = 1;
+
+	signal(SIGINT, sigHand);
+   struct timespec req, rem;
 	for(int i =0; i <= 5; i++){
-		
-		if(sigaction(SIGINT, SIG_IGN, NULL) == 0){
-			ssize_t bytes; 
-			const int STDOUT = 1; 
-			bytes = write(STDOUT, "Nice try.\n", 10); 
-			if(bytes != 10) 
-   				exit(-999);
-	}
+		req.tv_sec = 1;
+		req.tv_nsec = 0;
+		rem.tv_sec = 0;
+		rem.tv_nsec = 0;
 		printf("%s", "Still here\n");
-		nanosleep(&sec, NULL);
+		while(nanosleep(&req, &rem) == -1) {
+			if(nanosleep(&rem, &req) == 0)
+				break;
+		}
 	}
 	
   return 0;
 }
+
+
+	
+	// 	if(signal(SIGINT, SIG_IGN) == 0){
+	// 		ssize_t bytes; 
+	// 		const int STDOUT = 1; 
+	// 		bytes = write(STDOUT, "Nice try.\n", 10); 
+	// 		if(bytes != 10) 
+ //   				exit(-999);
+	// }
 
 
 
