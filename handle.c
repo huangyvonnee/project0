@@ -19,7 +19,27 @@
  */
 int main(int argc, char **argv)
 {
+	printf("\nProcess ID: %d\n", getpid());
+	
+	
+	
+   	struct timespec sec;
+   	sec.tv_sec = 1;
+	for(int i =0; i <= 5; i++){
+		
+		if(sigaction(SIGINT, SIG_IGN, NULL) == 0){
+			ssize_t bytes; 
+			const int STDOUT = 1; 
+			bytes = write(STDOUT, "Nice try.\n", 10); 
+			if(bytes != 10) 
+   				exit(-999);
+	}
+		printf("%s", "Still here\n");
+		nanosleep(&sec, NULL);
+	}
+	
   return 0;
 }
+
 
 
