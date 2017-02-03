@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include "util.h"
 
-
-
 void sigHand() {
 	ssize_t bytes; 
 	const int STDOUT = 1; 
@@ -16,9 +14,6 @@ void sigHand() {
 	if(bytes != 10) 
    	exit(-999);
 }
-
-
-
 
 /*
  * First, print out the process ID of this process.
@@ -33,7 +28,7 @@ int main(int argc, char **argv)
 {
 	printf("\nProcess ID: %d\n", getpid());
 	signal(SIGINT, sigHand);
-   	struct timespec req, rem;
+   struct timespec req, rem;
 	while(1) {
 		req.tv_sec = 1;
 		req.tv_nsec = 0;
