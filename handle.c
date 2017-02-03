@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "util.h"
 
+/*taken from Project 0 Instructions*/ 
 void sigHand() {
 	ssize_t bytes; 
 	const int STDOUT = 1; 
