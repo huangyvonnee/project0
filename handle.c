@@ -17,39 +17,38 @@
  * second.
  */
 
- void sigint_handler(int sig)
- {
- 	// taken from Project 0 Instructions
- 	ssize_t bytes; 
-	const int STDOUT = 1; 
-	bytes = write(STDOUT, "Nice try.\n", 10); 
-	if(bytes != 10) 
-   	exit(-999);
- }
- 
- void sigint_handler2(int sig)
- {
- 	// taken from Project 0 Instructions
- 	ssize_t bytes; 
-	const int STDOUT = 1; 
-	bytes = write(STDOUT, "exiting\n", 10); 
-   	exit(1);
+//write method call and surrounding code taken from Project 0 Instructions
+ void sigint_handler(int sig) {
+ 	ssize_t bytes;
+ 	const int STDOUT = 1;
+
+ 	if(sig == SIGINT) {
+		bytes = write(STDOUT, " Nice try.\n", 10); 
+		if(bytes != 10) 
+   		exit(-999);
+ 	} else if(sig == SIGUSR1) {
+		bytes = write(STDOUT, "exiting\n", 10); 
+   		exit(1);
+ 	}
  }
 
 int main(int argc, char **argv)
 {
-	printf("\nProcess ID: %d\n", getpid());
+	printf("Process ID: %d\n", getpid());
 	
 	signal(SIGINT, sigint_handler);
-	signal(SIGUSR1, sigint_handler2);
+	signal(SIGUSR1, sigint_handler);
 
-   	struct timespec sec, nsec;
+   	struct timespec req, rem;
 	while(1){
-		sec.tv_sec = 1;
+		req.tv_sec = 1;
+		req.tv_nsec = 0;
+		rem.tv_sec = 0;
+		rem.tv_nsec = 0;
 		
 		printf("%s", "Still here\n");
-		while(nanosleep(&sec, &nsec) == -1){
-			if(nanosleep(&nsec, &sec) == 0)
+		while(nanosleep(&req, &rem) == -1){
+			if(nanosleep(&rem, &req) == 0)
 				break;
 		}
 	}
