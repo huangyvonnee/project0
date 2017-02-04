@@ -1,7 +1,8 @@
 /* 
  * msh - A mini shell program with job control
  * 
- * <Put your name and login ID here>
+ * <Yvonne Huang: yvonnee>
+ * <Mohammad Asif: masif96>
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,8 +14,9 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include "util.h"
+ #include "util.c"
 #include "jobs.h"
-
+#include "jobs.c"
 
 /* Global variables */
 int verbose = 0;            /* if true, print additional output */
@@ -123,6 +125,32 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    char *argv[128];
+    char buf[MAXLINE];
+    int bg;
+    pid_t pid;
+
+    strcpy(buf, cmdline);
+    bg = parseline(buf, argv);
+    if(argv[0] == NULL)
+        return;
+
+    if(!builtin_cmd(argv)) {
+        if((pid = Fork()) == 0) {
+            if (execve(argv[0], argv, environ) < 0) {
+                printf("%s: Command not found.\n", argv[0]);
+                exit(0);
+            }
+        }
+
+        if(!bg) {
+            int status;
+            if(waitpid(pid, &status, 0) < 0)
+                unix_error("waitfg: waitpid error");
+        }
+        else
+            printf("%d %s", pid, cmdline);
+    }
     return;
 }
 
@@ -135,6 +163,19 @@ void eval(char *cmdline)
  */
 int builtin_cmd(char **argv) 
 {
+    if(!strcmp(argv[0], "quit"))
+        exit(0);
+    if(!strcmp(argv[0], "&"))
+        return 1;
+    if(!strcmp(argv[0], "jobs")){
+       listjobs(jobs);
+       return 1;
+    }
+    if(!strcmp(argv[0], "bg")){
+       listjobs(jobs);
+       return 1;
+    }
+
     return 0;     /* not a builtin command */
 }
 
@@ -177,6 +218,26 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    ssize_t bytes;
+    const int STDOUT = 1;
+    //get foreground PID of jobs array
+    pid_t pid = fgpid(jobs);
+    // if(pid != 0){
+
+
+
+
+
+        pid_t group_pid = getpgid(pid);
+        
+        deletejob(jobs, pid);
+        int jid = pid2jid(jobs, pid);
+        printf("\nJob[%d](%d) terminated by signal 2\n", pid, jid);
+        // char buffer[MAXLINE];
+        // bytes = sprintf(buffer, "Job[%d](%d) terminated by signal 2\n", pid, jid);
+        // write(STDOUT, buffer , bytes); 
+        kill(-group_pid, SIGKILL);
+    // }
     return;
 }
 
@@ -187,6 +248,20 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    ssize_t bytes;
+    const int STDOUT = 1;
+    //get foreground PID of jobs array
+    pid_t pid = fgpid(jobs);
+    if(pid != 0){
+        pid_t group_pid = getpgid(pid);
+        kill(-group_pid, SIGTSTP);
+        int jid = pid2jid(jobs, pid);
+
+        char* str = (char*)malloc(MAXLINE);
+        sprintf(str, "Job[%d](%d) stopped by signal 20\n", pid, jid);
+        bytes = write(STDOUT, str , 10); 
+        
+    }
     return;
 }
 
