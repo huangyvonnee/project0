@@ -158,6 +158,18 @@ void listjobs(struct job_t *jobs)
 	}
     }
 }
+
+int updatestate(struct job_t *jobs, int pid, int state)
+{
+	int i;
+	for (i = 0; i < MAXJOBS; i++) {
+		if (jobs[i].pid == pid) {
+			jobs[i].state = state;
+			return 0;
+		}
+	}
+	return -1;
+}
 /******************************
  * end job list helper routines
  ******************************/
