@@ -14,7 +14,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include "util.h"
- #include "util.c"
+#include "util.c"
 #include "jobs.h"
 #include "jobs.c"
 
@@ -123,33 +123,34 @@ int main(int argc, char **argv)
  * background children don't receive SIGINT (SIGTSTP) from the kernel
  * when we type ctrl-c (ctrl-z) at the keyboard.  
 */
-void eval(char *cmdline) 
-{
-    char *argv[128];
+void eval(char *cmdline) {
+    char *argv[MAXARGS];
     char buf[MAXLINE];
-    int bg;
+    int state;
     pid_t pid;
 
     strcpy(buf, cmdline);
-    bg = parseline(buf, argv);
+    if(parseline(buf, argv) == 1)
+        state = BG;
+    else
+        state = FG;
+
     if(argv[0] == NULL)
         return;
 
     if(!builtin_cmd(argv)) {
         if((pid = Fork()) == 0) {
-            if (execve(argv[0], argv, environ) < 0) {
-                printf("%s: Command not found.\n", argv[0]);
+            setpgid(0,0);
+            if(execve(argv[0], argv, environ) < 0) {
+                printf("everything failed");
                 exit(0);
             }
+        } else {
+            addjob(jobs, pid, state, cmdline);
+            waitfg(fgpid(jobs));
+            if(state == BG)
+                printf("%d %s", pid, cmdline);
         }
-
-        if(!bg) {
-            int status;
-            if(waitpid(pid, &status, 0) < 0)
-                unix_error("waitfg: waitpid error");
-        }
-        else
-            printf("%d %s", pid, cmdline);
     }
     return;
 }
@@ -172,7 +173,11 @@ int builtin_cmd(char **argv)
        return 1;
     }
     if(!strcmp(argv[0], "bg")){
-       listjobs(jobs);
+      // do_bgfg(argv[1]);
+       return 1;
+    }
+    if(!strcmp(argv[0], "fg")){
+      // do_bgfg(arg[1]);
        return 1;
     }
 
@@ -184,14 +189,42 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
-    return;
+  //   if(!strcmp(argv[0], "fg")){
+  // //      kill(argv[1], SIGCONT);
+  //   }
+  //   if(!strcmp(argv[0], "bg")){
+  //        kill(argv[1], SIGCONT);
+  //   }
+     return;
 }
 
 /* 
  * waitfg - Block until process pid is no longer the foreground process
+ * 
+ * some code taken from B&O
  */
 void waitfg(pid_t pid)
 {
+    int status;
+    if(waitpid(pid, &status, 0) < 0)
+        unix_error("waitfg: waitpid error");
+
+    // sigset_t mask, prev;
+    // sigemptyset(&mask);
+    // sigaddset(&mask, SIGCHLD);
+
+    // while(1){
+    //     sigprocmask(SIG_BLOCK, &mask, &prev);
+    //     if(pid==0)
+    //         exit(0);
+
+    //     pid = 0;
+    //     while(!pid){
+    //         sigsuspend(&prev);
+    //     }
+    //     sigprocmask(SIG_SETMASK, &prev, NULL);
+    // }
+    // exit(0);
     return;
 }
 
@@ -208,6 +241,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    
     return;
 }
 
@@ -220,24 +254,15 @@ void sigint_handler(int sig)
 {
     ssize_t bytes;
     const int STDOUT = 1;
-    //get foreground PID of jobs array
     pid_t pid = fgpid(jobs);
-    // if(pid != 0){
-
-
-
-
-
-        pid_t group_pid = getpgid(pid);
-        
-        deletejob(jobs, pid);
+    if(pid != 0) {
         int jid = pid2jid(jobs, pid);
-        printf("\nJob[%d](%d) terminated by signal 2\n", pid, jid);
-        // char buffer[MAXLINE];
-        // bytes = sprintf(buffer, "Job[%d](%d) terminated by signal 2\n", pid, jid);
-        // write(STDOUT, buffer , bytes); 
-        kill(-group_pid, SIGKILL);
-    // }
+        char buffer[MAXLINE];
+        bytes = sprintf(buffer, "%s\nJob [%d] (%d) terminated by signal 2\n", buffer, jid, pid);
+        write(STDOUT, buffer, bytes);
+        deletejob(jobs, pid);
+        kill(-pid, SIGINT);
+    }
     return;
 }
 
@@ -250,17 +275,15 @@ void sigtstp_handler(int sig)
 {
     ssize_t bytes;
     const int STDOUT = 1;
-    //get foreground PID of jobs array
     pid_t pid = fgpid(jobs);
-    if(pid != 0){
-        pid_t group_pid = getpgid(pid);
-        kill(-group_pid, SIGTSTP);
+    if(pid != 0) {
         int jid = pid2jid(jobs, pid);
-
-        char* str = (char*)malloc(MAXLINE);
-        sprintf(str, "Job[%d](%d) stopped by signal 20\n", pid, jid);
-        bytes = write(STDOUT, str , 10); 
-        
+        char buffer[MAXLINE];
+        bytes = sprintf(buffer, "%s\nJob [%d] (%d) stopped by signal 20\n", buffer, jid, pid);
+        write(STDOUT, buffer, bytes);
+        kill(-pid, SIGTSTP);
+        updatestate(jobs, pid, ST);
+     //   listjobs(jobs);
     }
     return;
 }
