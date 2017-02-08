@@ -258,7 +258,7 @@ void sigint_handler(int sig)
     if(pid != 0) {
         int jid = pid2jid(jobs, pid);
         char buffer[MAXLINE];
-        bytes = sprintf(buffer, "%s\nJob [%d] (%d) terminated by signal 2\n", buffer, jid, pid);
+        bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, pid);
         write(STDOUT, buffer, bytes);
         deletejob(jobs, pid);
         kill(-pid, SIGINT);
@@ -279,7 +279,7 @@ void sigtstp_handler(int sig)
     if(pid != 0) {
         int jid = pid2jid(jobs, pid);
         char buffer[MAXLINE];
-        bytes = sprintf(buffer, "%s\nJob [%d] (%d) stopped by signal 20\n", buffer, jid, pid);
+        bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
         write(STDOUT, buffer, bytes);
         kill(-pid, SIGTSTP);
         updatestate(jobs, pid, ST);
