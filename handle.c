@@ -17,16 +17,19 @@
  * second.
  */
 
-//write method call and surrounding code taken from Project 0 Instructions
+ //Catches SIGINT and SIGUSR1 and outputs to STDOUT
+ //according to specifications
+ //Yvonne driving now
  void sigint_handler(int sig) {
 	if(sig == SIGINT)
  		Write("Nice try.\n", 10);
  	else if(sig == SIGUSR1) {
  		Write("exiting\n", 10);
-   		exit(1);
+   	exit(1);
  	}
- }
+ } 
 
+//Mohammad driving now
 int main(int argc, char **argv)
 {
 	printf("Process ID: %d\n", getpid());
@@ -34,16 +37,18 @@ int main(int argc, char **argv)
 	signal(SIGINT, sigint_handler);
 	signal(SIGUSR1, sigint_handler);
 
-   	struct timespec req, rem;
+   struct timespec req, rem;
 	while(1){
+		//Resets timing data for increased accuracy
+		//Manually setting to 0 ensures no garbage data
 		req.tv_sec = 1;
 		req.tv_nsec = 0;
 		rem.tv_sec = 0;
 		rem.tv_nsec = 0;
 		
 		printf("%s", "Still here\n");
-		while(nanosleep(&req, &rem) == -1){
-			if(nanosleep(&rem, &req) == 0)
+		while(Nanosleep(&req, &rem) == -1){
+			if(Nanosleep(&rem, &req) == 0)
 				break;
 		}
 	}
