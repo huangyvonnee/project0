@@ -109,3 +109,40 @@ pid_t Fork(void)
         unix_error("Fork error");
     return pid;
 }
+
+//From string notes posted by Norman
+void substr(char dest[], char src[], int offset, int len)
+{
+int i;
+for(i = 0; i < len && src[offset + i] != '\0'; i++)
+    dest[i] = src[i + offset];
+dest[i] = '\0';
+}
+
+//code taken from online source
+int startsWith(const char *str, const char *pre)
+{
+    size_t lenpre = strlen(pre);
+    size_t lenstr = strlen(str);
+    return lenstr < lenpre ? 0 : strncmp(pre, str, lenpre) == 0;
+}
+
+void Write(const char* str, int jid, pid_t pid)
+{
+    ssize_t bytes;
+    const int STDOUT = 1;
+    char buffer[MAXLINE];
+
+    if(pid == 0 && jid == 0) {
+        bytes = sprintf(buffer, str);
+        write(STDOUT, buffer, bytes);
+    } else if(pid == 0) {
+        bytes = sprintf(buffer, str, jid);
+        write(STDOUT, buffer, bytes);
+    } else if(jid == 0) {
+        bytes = sprintf(buffer, str, pid);
+        write(STDOUT, buffer, bytes);
+    }
+    
+    return;
+}
