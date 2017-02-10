@@ -19,15 +19,10 @@
 
 //write method call and surrounding code taken from Project 0 Instructions
  void sigint_handler(int sig) {
- 	ssize_t bytes;
- 	const int STDOUT = 1;
-
- 	if(sig == SIGINT) {
-		bytes = write(STDOUT, " Nice try.\n", 10); 
-		if(bytes != 10) 
-   		exit(-999);
- 	} else if(sig == SIGUSR1) {
-		bytes = write(STDOUT, "exiting\n", 10); 
+	if(sig == SIGINT)
+ 		Write("Nice try.\n", 10);
+ 	else if(sig == SIGUSR1) {
+ 		Write("exiting\n", 10);
    		exit(1);
  	}
  }
