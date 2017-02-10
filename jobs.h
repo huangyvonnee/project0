@@ -37,7 +37,9 @@ pid_t fgpid(struct job_t *jobs);
 struct job_t *getjobpid(struct job_t *jobs, pid_t pid);
 struct job_t *getjobjid(struct job_t *jobs, int jid); 
 int pid2jid(struct job_t *jobs, pid_t pid); 
+pid_t jid2pid(struct job_t *jobs, int jid); 
 void listjobs(struct job_t *jobs);
 int updatestate(struct job_t *jobs, int pid, int state);
+void showjobstatus(struct job_t *jobs, pid_t pid);
 
 #endif
