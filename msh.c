@@ -141,13 +141,13 @@ void eval(char *cmdline) {
     if(!builtin_cmd(argv)) {
 
         sigset_t mask;
-        sigemptyset(&mask);
-        sigaddset(&mask, SIGCHLD);
-        sigprocmask(SIG_BLOCK, &mask, NULL);
+        Sigemptyset(&mask);
+        Sigaddset(&mask, SIGCHLD);
+        Sigprocmask(SIG_BLOCK, &mask, NULL);
 
         if((pid = Fork()) == 0) {
-            sigprocmask(SIG_UNBLOCK, &mask, NULL);
-            setpgid(0,0);
+            Sigprocmask(SIG_UNBLOCK, &mask, NULL);
+            Setpgid(0,0);
 
             if(execve(argv[0], argv, environ) < 0) {
                 //unix_error(argv[0]);
@@ -157,7 +157,7 @@ void eval(char *cmdline) {
 
         } else {
             addjob(jobs, pid, state, cmdline);
-            sigprocmask(SIG_UNBLOCK, &mask, NULL);
+            Sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
             if(state == FG)
                 waitfg(fgpid(jobs));
@@ -203,6 +203,7 @@ int builtin_cmd(char **argv)
 void do_bgfg(char **argv) 
 {
     //Yvonne driving now
+    //Check if user only wrote "bg" or "fg"
     if(argv[1] == NULL){
         if(!strcmp(argv[0], "bg"))
             printf("bg command requires PID or %%jobid argument\n");
@@ -212,17 +213,21 @@ void do_bgfg(char **argv)
     }
 
     //Mohammad driving now
+    //Check if argument entered is a PID or a JID
+    //If arg starts with a "%", it's a JID, else PID
     int len = strlen(argv[1]);
     if(startsWith(argv[1], "%")) {
         char num[len-1];
         substr(num, argv[1], 1, len-1);
         int jid = atoi(num);
+        //Checks if user entered a valid JID
         if(getjobjid(jobs, jid) == NULL){
             printf("%%%d: No such job\n", jid);
             return;
         }
         pid_t pid = jid2pid(jobs, jid);
-        kill(-pid, SIGCONT);
+        Kill(-pid, SIGCONT);
+        //Checks if user wants program to run in foreground or background
         if(!strcmp(argv[0], "bg")) {
             updatestate(jobs, pid, BG);
             showjobstatus(jobs, pid);
@@ -233,6 +238,7 @@ void do_bgfg(char **argv)
         }
     } else {
         //Yvonne driving now
+        //Check if user entered a number or not as the PID argument
         for(int i =0; i < len; i++){
             if(!isdigit(argv[1][i])){
                 if(!strcmp(argv[0], "bg"))
@@ -244,13 +250,15 @@ void do_bgfg(char **argv)
             }
         }
 
+        //Check if user entered valid PID
         pid_t pid = atoi(argv[1]);
         if(getjobpid(jobs, pid) == NULL){
             printf("(%d): No such process\n", pid);
             return;
         }
 
-        kill(-pid, SIGCONT);
+        Kill(-pid, SIGCONT);
+        //Checks if user wants program to run in foreground or background
         if(!strcmp(argv[0], "bg"))
             updatestate(jobs, pid, BG);
         if(!strcmp(argv[0], "fg")) {
@@ -271,16 +279,16 @@ void waitfg(pid_t pid)
 {
     //Mohammad and Yvonne driving now
     sigset_t mask, prev;
-    sigemptyset(&mask);
-    sigemptyset(&prev);
-    sigaddset(&mask, SIGTSTP);
-    sigaddset(&mask, SIGINT);
+    Sigemptyset(&mask);
+    Sigemptyset(&prev);
+    Sigaddset(&mask, SIGTSTP);
+    Sigaddset(&mask, SIGINT);
     
-    sigprocmask(SIG_BLOCK, &mask, NULL);
+    Sigprocmask(SIG_BLOCK, &mask, NULL);
     while(pid == fgpid(jobs)){    
-        sigsuspend(&prev);
+        Sigsuspend(&prev);
     }
-    sigprocmask(SIG_UNBLOCK, &mask, NULL);
+    Sigprocmask(SIG_UNBLOCK, &mask, NULL);
     return;
 }
 
@@ -301,20 +309,19 @@ void sigchld_handler(int sig)
     int status;
     pid_t pid;
     ssize_t bytes;
-    const int STDOUT = 1;
     char buffer[MAXLINE];
 
-    while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
-	   if(WIFSIGNALED(status)){
+    while((pid = Waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
+       if(WIFSIGNALED(status)){
             int jid = pid2jid(jobs, fgpid(jobs));
-            bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
-            write(STDOUT, buffer, bytes);
+            bytes = Sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
+            Write(buffer, bytes);
             deletejob(jobs, pid);
         }
         else if(WIFSTOPPED(status)){
             int jid = pid2jid(jobs, pid);
-            bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
-            write(STDOUT, buffer, bytes);
+            bytes = Sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
+            Write(buffer, bytes);
             updatestate(jobs, pid, ST);
         }
         else if(WIFEXITED(status)){
@@ -334,7 +341,7 @@ void sigint_handler(int sig)
     //Yvonne driving now
     pid_t pid = fgpid(jobs);
     if(pid != 0)
-        kill(-pid, SIGINT);
+        Kill(-pid, SIGINT);
     return;
 }
 
@@ -348,7 +355,7 @@ void sigtstp_handler(int sig)
     //Yvonne driving now
     pid_t pid = fgpid(jobs);
     if(pid != 0)
-        kill(-pid, SIGTSTP);
+        Kill(-pid, SIGTSTP);
     return;
 }
 
