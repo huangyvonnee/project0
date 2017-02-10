@@ -132,6 +132,8 @@ int pid2jid(struct job_t *jobs, pid_t pid)
     return 0;
 }
 
+//Mohammad wrote this
+/* jid2pid - Map job ID to process ID */
 pid_t jid2pid(struct job_t *jobs, int jid) 
 {
     if (jid < 1)
@@ -167,7 +169,8 @@ void listjobs(struct job_t *jobs)
     }
 }
 
-
+//Mohammad wrote this
+/* updatestate - update the state variable of a job struct */
 int updatestate(struct job_t *jobs, int pid, int state)
 {
 	int i;
@@ -180,6 +183,8 @@ int updatestate(struct job_t *jobs, int pid, int state)
 	return -1;
 }
 
+//Mohammad wrote this
+/* showjobstatus - show job information */
 void showjobstatus(struct job_t *jobs, pid_t pid) 
 {
 	struct job_t *job = getjobpid(jobs, pid);
@@ -190,4 +195,3 @@ void showjobstatus(struct job_t *jobs, pid_t pid)
 /******************************
  * end job list helper routines
  ******************************/
-
