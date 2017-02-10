@@ -12,5 +12,8 @@ void app_error(char *msg);
 typedef void handler_t(int);
 handler_t *Signal(int signum, handler_t *handler);
 pid_t Fork(void);
+void substr(char dest[], char src[], int offset, int len);
+int startsWith(const char *str, const char *pre);
+void Write(const char* str, int jid, pid_t pid);
 
 #endif
