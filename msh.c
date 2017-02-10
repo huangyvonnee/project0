@@ -61,16 +61,16 @@ int main(int argc, char **argv)
         switch (c) {
         case 'h':             /* print help message */
             usage();
-	    break;
+        break;
         case 'v':             /* emit additional diagnostic info */
             verbose = 1;
-	    break;
+        break;
         case 'p':             /* don't print a prompt */
             emit_prompt = 0;  /* handy for automatic testing */
-	    break;
-	default:
+        break;
+    default:
             usage();
-	}
+    }
     }
 
     /* Install the signal handlers */
@@ -89,22 +89,22 @@ int main(int argc, char **argv)
     /* Execute the shell's read/eval loop */
     while (1) {
 
-	/* Read command line */
-	if (emit_prompt) {
-	    printf("%s", prompt);
-	    fflush(stdout);
-	}
-	if ((fgets(cmdline, MAXLINE, stdin) == NULL) && ferror(stdin))
-	    app_error("fgets error");
-	if (feof(stdin)) { /* End of file (ctrl-d) */
-	    fflush(stdout);
-	    exit(0);
-	}
+    /* Read command line */
+    if (emit_prompt) {
+        printf("%s", prompt);
+        fflush(stdout);
+    }
+    if ((fgets(cmdline, MAXLINE, stdin) == NULL) && ferror(stdin))
+        app_error("fgets error");
+    if (feof(stdin)) { /* End of file (ctrl-d) */
+        fflush(stdout);
+        exit(0);
+    }
 
-	/* Evaluate the command line */
-	eval(cmdline);
-	fflush(stdout);
-	fflush(stdout);
+    /* Evaluate the command line */
+    eval(cmdline);
+    fflush(stdout);
+    fflush(stdout);
     } 
 
     exit(0); /* control never reaches here */
@@ -201,9 +201,9 @@ void do_bgfg(char **argv)
 {
     if(argv[1] == NULL){
         if(!strcmp(argv[0], "bg"))
-            Write("bg command requires PID or %%jobid argument\n", 0, 0);
+            printf("bg command requires PID or %%jobid argument\n");
         if(!strcmp(argv[0], "fg"))
-            Write("fg command requires PID or %%jobid argument\n", 0, 0);    
+            printf("fg command requires PID or %%jobid argument\n");
         return;
     }
 
@@ -213,7 +213,7 @@ void do_bgfg(char **argv)
         substr(num, argv[1], 1, len-1);
         int jid = atoi(num);
         if(getjobjid(jobs, jid) == NULL){
-            Write("%%%d: No such job\n", jid, 0);
+            printf("%%%d: No such job\n", jid);
             return;
         }
         pid_t pid = jid2pid(jobs, jid);
@@ -230,9 +230,9 @@ void do_bgfg(char **argv)
         for(int i =0; i < len; i++){
             if(!isdigit(argv[1][i])){
                 if(!strcmp(argv[0], "bg"))
-                    Write("bg: argument must be a PID or %%jobid\n", 0, 0);
+                    printf("bg: argument must be a PID or %%jobid\n");
                 if(!strcmp(argv[0], "fg"))
-                    Write("fg: argument must be a PID or %%jobid\n", 0 ,0);
+                    printf("fg: argument must be a PID or %%jobid\n");
 
                 return;
             }
@@ -240,7 +240,7 @@ void do_bgfg(char **argv)
 
         pid_t pid = atoi(argv[1]);
         if(getjobpid(jobs, pid) == NULL){
-            Write("(%d): No such process\n", 0, pid);
+            printf("(%d): No such process\n", pid);
             return;
         }
 
@@ -277,6 +277,20 @@ void waitfg(pid_t pid)
     return;
 }
 
+// void printTerminated(struct job_t *jobs, pid_t pid) {
+//     int jid = pid2jid(jobs, pid);
+//     struct job_t *job = getjobpid(jobs, pid);
+//     if(job->printed == 0){
+//         job->printed == 1;
+//         ssize_t bytes;
+//         const int STDOUT = 1;
+//         char buffer[MAXLINE];
+//         bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, pid);
+//         write(STDOUT, buffer, bytes);
+//     }
+//     return;
+// }
+
 /*****************
  * Signal handlers
  *****************/
@@ -295,20 +309,20 @@ void sigchld_handler(int sig)
     ssize_t bytes;
     const int STDOUT = 1;
     char buffer[MAXLINE];
-    ssize_t byt;
 
     while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
         if(WIFSIGNALED(status)){
             int jid = pid2jid(jobs, fgpid(jobs));
             bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
-            byt = write(STDOUT, buffer, bytes);
+            write(STDOUT, buffer, bytes);
+            // printTerminated(jobs, pid);
             kill(-pid, SIGINT);
             deletejob(jobs, pid);
         }
         else if(WIFSTOPPED(status)){
             int jid = pid2jid(jobs, pid);
             bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
-            byt = write(STDOUT, buffer, bytes);
+            write(STDOUT, buffer, bytes);
             kill(-pid, SIGTSTP);
             updatestate(jobs, pid, ST);
         }
