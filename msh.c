@@ -295,31 +295,27 @@ void sigchld_handler(int sig)
     ssize_t bytes;
     const int STDOUT = 1;
     char buffer[MAXLINE];
+    ssize_t byt;
 
-    while((pid = waitpid(-1,&status, WNOHANG|WUNTRACED)) > 0){
-        
-        if(WIFEXITED(status)){
-            deletejob(jobs,pid);
-        }
+    while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
         if(WIFSIGNALED(status)){
             int jid = pid2jid(jobs, fgpid(jobs));
             bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
-            write(STDOUT, buffer, bytes);
+            byt = write(STDOUT, buffer, bytes);
             kill(-pid, SIGINT);
             deletejob(jobs, pid);
         }
-        if(WIFSTOPPED(status)){
+        else if(WIFSTOPPED(status)){
             int jid = pid2jid(jobs, pid);
             bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
-            write(STDOUT, buffer, bytes);
+            byt = write(STDOUT, buffer, bytes);
             kill(-pid, SIGTSTP);
             updatestate(jobs, pid, ST);
         }
+        else if(WIFEXITED(status)){
+            deletejob(jobs,pid);
+        }
     }
-
-    // if(errno != ECHILD){
-    //     unix_error("waitpid error");
-    // }
     return;
 }
 
@@ -332,11 +328,11 @@ void sigint_handler(int sig)
 {
     pid_t pid = fgpid(jobs);
     if(pid != 0) {
-        int jid = pid2jid(jobs, pid);
+        // int jid = pid2jid(jobs, pid);
         // ssize_t bytes;
         // const int STDOUT = 1;
         // char buffer[MAXLINE];
-        // bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
+        // bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, pid);
         // write(STDOUT, buffer, bytes);
         deletejob(jobs, pid);
         kill(-pid, SIGINT);
@@ -354,7 +350,7 @@ void sigtstp_handler(int sig)
 {
     pid_t pid = fgpid(jobs);
     if(pid != 0) {
-        int jid = pid2jid(jobs, pid);
+        //int jid = pid2jid(jobs, pid);
         // ssize_t bytes;
         // const int STDOUT = 1;
         // char buffer[MAXLINE];
