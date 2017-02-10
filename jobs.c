@@ -124,13 +124,21 @@ int pid2jid(struct job_t *jobs, pid_t pid)
     int i;
 
     if (pid < 1)
-	return 0;
+		return 0;
     for (i = 0; i < MAXJOBS; i++)
-	if (jobs[i].pid == pid) {
-            return jobs[i].jid;
-        }
+		if (jobs[i].pid == pid) {
+        	return jobs[i].jid;
+    	}
     return 0;
 }
+
+pid_t jid2pid(struct job_t *jobs, int jid) 
+{
+    if (jid < 1)
+		return 0;
+    return jobs[jid-1].pid;
+}
+
 
 /* listjobs - Print the job list */
 void listjobs(struct job_t *jobs) 
@@ -159,6 +167,7 @@ void listjobs(struct job_t *jobs)
     }
 }
 
+
 int updatestate(struct job_t *jobs, int pid, int state)
 {
 	int i;
@@ -170,6 +179,14 @@ int updatestate(struct job_t *jobs, int pid, int state)
 	}
 	return -1;
 }
+
+void showjobstatus(struct job_t *jobs, pid_t pid) 
+{
+	struct job_t *job = getjobpid(jobs, pid);
+	printf("[%d] (%d) %s",job->jid, job->pid, job->cmdline);
+}
+
+
 /******************************
  * end job list helper routines
  ******************************/
