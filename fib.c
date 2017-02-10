@@ -8,11 +8,21 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include "util.c"
-#include "util.h"
 
 const int MAX = 13;
 
 static void doFib(int n, int doPrint);
+
+
+/*
+ * unix_error - unix-style error routine.
+ */
+// inline static void unix_error(char *msg)
+// {
+//     fprintf(stdout, "%s: %s\n", msg, strerror(errno));
+//     exit(1);
+// }
+
 
 int main(int argc, char **argv)
 {
@@ -45,7 +55,7 @@ int main(int argc, char **argv)
  */
 static void doFib(int n, int doPrint)
 {
-    int status1;
+   int status1;
     int status2;
     int fib;
 
@@ -79,5 +89,7 @@ static void doFib(int n, int doPrint)
         }
         
     }
-    printf("%d\n", fib);
+printf("%d\n", fib);
 }
+
+
