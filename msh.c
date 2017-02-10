@@ -119,7 +119,9 @@ int main(int argc, char **argv)
  * the foreground, wait for it to terminate and then return.  Note:
  * each child process must have a unique process group ID so that our
  * background children don't receive SIGINT (SIGTSTP) from the kernel
- * when we type ctrl-c (ctrl-z) at the keyboard.  
+ * when we type ctrl-c (ctrl-z) at the keyboard.
+ * 
+ * Structure of code taken from B&O
 */
 void eval(char *cmdline) {
     char *argv[MAXARGS];
@@ -174,6 +176,7 @@ void eval(char *cmdline) {
  */
 int builtin_cmd(char **argv) 
 {
+    //Yvonne driving now
     if(!strcmp(argv[0], "quit"))
         exit(0);
     if(!strcmp(argv[0], "&"))
@@ -199,6 +202,7 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+    //Yvonne driving now
     if(argv[1] == NULL){
         if(!strcmp(argv[0], "bg"))
             printf("bg command requires PID or %%jobid argument\n");
@@ -207,6 +211,7 @@ void do_bgfg(char **argv)
         return;
     }
 
+    //Mohammad driving now
     int len = strlen(argv[1]);
     if(startsWith(argv[1], "%")) {
         char num[len-1];
@@ -227,6 +232,7 @@ void do_bgfg(char **argv)
             waitfg(fgpid(jobs));
         }
     } else {
+        //Yvonne driving now
         for(int i =0; i < len; i++){
             if(!isdigit(argv[1][i])){
                 if(!strcmp(argv[0], "bg"))
@@ -263,6 +269,7 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    //Mohammad and Yvonne driving now
     sigset_t mask, prev;
     sigemptyset(&mask);
     sigemptyset(&prev);
@@ -277,20 +284,6 @@ void waitfg(pid_t pid)
     return;
 }
 
-// void printTerminated(struct job_t *jobs, pid_t pid) {
-//     int jid = pid2jid(jobs, pid);
-//     struct job_t *job = getjobpid(jobs, pid);
-//     if(job->printed == 0){
-//         job->printed == 1;
-//         ssize_t bytes;
-//         const int STDOUT = 1;
-//         char buffer[MAXLINE];
-//         bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, pid);
-//         write(STDOUT, buffer, bytes);
-//     }
-//     return;
-// }
-
 /*****************
  * Signal handlers
  *****************/
@@ -304,6 +297,7 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    //Mohammad driving now
     int status;
     pid_t pid;
     ssize_t bytes;
@@ -311,19 +305,16 @@ void sigchld_handler(int sig)
     char buffer[MAXLINE];
 
     while((pid = waitpid(-1, &status, WNOHANG|WUNTRACED)) > 0){
-        if(WIFSIGNALED(status)){
+	   if(WIFSIGNALED(status)){
             int jid = pid2jid(jobs, fgpid(jobs));
             bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, fgpid(jobs));
             write(STDOUT, buffer, bytes);
-            // printTerminated(jobs, pid);
-            kill(-pid, SIGINT);
             deletejob(jobs, pid);
         }
         else if(WIFSTOPPED(status)){
             int jid = pid2jid(jobs, pid);
             bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
             write(STDOUT, buffer, bytes);
-            kill(-pid, SIGTSTP);
             updatestate(jobs, pid, ST);
         }
         else if(WIFEXITED(status)){
@@ -340,18 +331,10 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    //Yvonne driving now
     pid_t pid = fgpid(jobs);
-    if(pid != 0) {
-        // int jid = pid2jid(jobs, pid);
-        // ssize_t bytes;
-        // const int STDOUT = 1;
-        // char buffer[MAXLINE];
-        // bytes = sprintf(buffer, "Job [%d] (%d) terminated by signal 2\n", jid, pid);
-        // write(STDOUT, buffer, bytes);
-        deletejob(jobs, pid);
+    if(pid != 0)
         kill(-pid, SIGINT);
-        //if bytes ...
-    }
     return;
 }
 
@@ -362,18 +345,10 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    //Yvonne driving now
     pid_t pid = fgpid(jobs);
-    if(pid != 0) {
-        //int jid = pid2jid(jobs, pid);
-        // ssize_t bytes;
-        // const int STDOUT = 1;
-        // char buffer[MAXLINE];
-        // bytes = sprintf(buffer, "Job [%d] (%d) stopped by signal 20\n", jid, pid);
-        // write(STDOUT, buffer, bytes);
+    if(pid != 0)
         kill(-pid, SIGTSTP);
-        updatestate(jobs, pid, ST);
-        //if bytes...
-    }
     return;
 }
 
@@ -412,6 +387,3 @@ void sigquit_handler(int sig)
        exit(-999);
     exit(1);
 }
-
-
-
