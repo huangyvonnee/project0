@@ -91,5 +91,3 @@ static void doFib(int n, int doPrint)
     }
 printf("%d\n", fib);
 }
-
-
